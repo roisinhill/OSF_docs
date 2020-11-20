@@ -1,4 +1,4 @@
-## 1D_layer_adapted_mesh_rh_refinement.py
+## 1D_layer_adapted_mesh_MPDE_h_refinement.py
 ## FEniCS version: 2019.2.0.dev0
 '''
 Generate 1-sided Bakhvalov-type mesh, for a singularly perturbed ODE
@@ -12,7 +12,7 @@ in the file FIAT/quadrature.py
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,
-by Róisín Hill and Niall Madden. DOI:???
+by Róisín Hill and Niall Madden. DOI: 10.17605/OSF.IO/DPEXH
 Contact: Róisín Hill <Roisin.Hill@NUIGalway.ie>
 '''
 

@@ -1,4 +1,4 @@
-## 1D_layer_adapted_mesh_rh_refinement.py
+## 1D_layer_adapted_mesh_MPDE_h_refinement.py
 ## FEniCS version: 2019.2.0.dev0
 '''
 Generate 1-sided Bakhvalov-type mesh, for a singularly perturbed ODE
@@ -13,14 +13,14 @@ in the file FIAT/quadrature.py
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,
-by Róisín Hill and Niall Madden. DOI:???
+by Róisín Hill and Niall Madden. DOI: 10.17605/OSF.IO/DPEXH
 Contact: Róisín Hill <Roisin.Hill@NUIGalway.ie>
 '''
 
 from fenics import *
 import matplotlib.pyplot as plt
 import math
-
+import numpy as np
 # Set degree for the Gauss-Lobatto quadrature rule
 parameters['form_compiler']['quadrature_degree'] =  4
 
@@ -36,21 +36,20 @@ K = q/(sigma*(1-q))
 
 # Parameters for h-refinement steps
 N_start = 4         # initial number of mesh intervals
-N_step = N_start    # current number of mesh intervals
 step_index = 0      # initial step number
+N_steps = 2**np.arange(round(math.log(N_start,2)),int(math.log(N,2)))
 
-# Define right side of MPDE and initial solution
-f = Expression('0.0', degree=2)
-x_0 = Expression('x[0]', degree=2)
+f = Expression('0.0', degree=2)    # Right-and side of MPDE
+x_0 = Expression('x[0]', degree=2) # Initial solution
 
-# Define stopping criteria tolerance and intiial value
-residual_norm_TOL = 0.4
+residual_norm_TOL = 0.4   # Stopping criterion tolerance
 residual_norm = residual_norm_TOL+1
 
 # Lists for meshes and computational function spaces
 mesh_list = []
 V_list = []
-list_length = int(math.log(N/N_start,2)+1)
+list_length = (N_steps.size+1)
+print(list_length)
 for i in range(0,list_length):
     mesh_list.append("mesh%2d" %(i))
     V_list.append("V2D%2d" %(i))
@@ -65,7 +64,7 @@ def comp_space(N):
 
 # FEM problem for the MPDE
 def MPDE_FEM(rho, xN, x, v, f, meshz, V):
-    bc = DirichletBC(V, x_0, 'on_boundary')      # Dirichlet boundary condition
+    bc = DirichletBC(V, x_0, 'on_boundary') # Dirichlet boundary condition
     a = rho(xN)*inner(grad(x),grad(v))*dx(meshz) # Left side of weak form
     L = f*v*dx                       # Right side of weak form
     xN = Function(V)                 # Numerical solution in V
@@ -88,19 +87,18 @@ def calc_residual(rho, V, meshN):
     return residual_norm
 
 # Initial function space parameters
-mesh_list[0], V_list[0], v, x = comp_space(N_step)
+mesh_list[0], V_list[0], v, x = comp_space(N_start)
 xN = interpolate(x_0, V_list[0])                     # Initial value for xN
 
 # Iterate through uniform h-refinements
-while N_step < N:
+for N_step in N_steps:
     for i in range(0,3):    # Calculate solution three times on each mesh size
          xN = MPDE_FEM(rho, xN, x, v, f, mesh_list[step_index], \
                                V_list[step_index])
 
-    N_step = N_step*2    # Double the number of mesh intervals
-    step_index = round(math.log(N_step/N_start,2))
+    step_index = round(math.log(N_step*2/N_start,2))
     # Generate computational function space on the finer mesh
-    mesh_list[step_index], V_list[step_index], v, x = comp_space(N_step)
+    mesh_list[step_index], V_list[step_index], v, x = comp_space(N_step*2)
 
     # Interpolate the solution onto the new computational function space
     xN = interpolate(xN, V_list[step_index])
@@ -121,9 +119,9 @@ meshp.coordinates()[:,0]  = xN.compute_vertex_values()[:]
 Vp = FunctionSpace(meshp, 'P', 1)            # Function space with P1-elements
 vp = TestFunction(Vp)                        # Test function on V
 u = TrialFunction(Vp)                        # Trial function on V
-gp = Expression('x[0]*(1-x[0])', degree=2) # Boundary values
+gp = Expression('x[0]*(1-x[0])', degree=2)   # Boundary values
 bcp = DirichletBC(Vp, gp, 'on_boundary')     # Dirichlet boundary conditions
-fp= Expression('1.0-x[0]', degree=2)       # RHS of PDE
+fp = Expression('1.0-x[0]', degree=2)        # RHS of PDE
 
 # FEM problem for the reaction-diffusion equation
 a = epsilon*epsilon*dot(grad(u), grad(vp))*dx + u*vp*dx

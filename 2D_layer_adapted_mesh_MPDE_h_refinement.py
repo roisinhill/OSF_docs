@@ -1,4 +1,4 @@
-## 2D_layer_adapted_mesh_rh_refinement.py
+## 2D_layer_adapted_mesh_MPDE_h_refinement.py
 ## FEniCS version: 2019.2.0.dev0
 '''
 Generate a non-tensor product layer adapted mesh, for a singularly
@@ -12,12 +12,13 @@ and using uniform h-refinements.
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,
-by Róisín Hill and Niall Madden. DOI:???
+by Róisín Hill and Niall Madden. DOI: 10.17605/OSF.IO/DPEXH
 Contact: Róisín Hill <Roisin.Hill@NUIGalway.ie>
 '''
 
 from fenics import *
 import math
+import numpy as np
 
 # Problem parameters
 epsilon = 1E-2      # perturbation factor of the physical PDE
@@ -25,8 +26,8 @@ N = 32              # N+1 mesh points in each direction in final mesh
 
 # Parameters for h refinement steps
 N_start = 4         # initial mesh size
-N_step = N_start    # current mesh size
-step_index = 0      # initial step index
+step_index = 0      # initial step number
+N_steps = 2**np.arange(round(math.log(N_start,2)),int(math.log(N,2)))
 
 # Parameters for M(x)
 sigma = 2.5 # dependant on method, often degree of elements +1 or +1.5
@@ -34,8 +35,7 @@ b = 0.99    # minimum coefficient of reaction/convection term as appropriate
 q = 0.5     # proportion of mesh points in layer
 K = q/(sigma*(1-q))
 
-# define right side of MPDE
-f = Expression(('0.0','0.0'), degree=2)
+f = Expression(('0.0','0.0'), degree=2) # Right-hand side of MPDE
 
 # Lists for meshes and computational function spaces
 mesh_list = []
@@ -94,7 +94,7 @@ def MPDE_FEM(M, xN, x, v, f, bcs, meshz, V):
     return xN
 
 # Initial function space parameters
-mesh_list[0], V_list[0], v, x = comp_space(N_step)
+mesh_list[0], V_list[0], v, x = comp_space(N_start)
 
 # Set intial value for xN: xN(xi1, xi2) = (xi1, xi2)
 a = inner(grad(x),grad(v))*dx
@@ -103,23 +103,20 @@ xN = Function(V_list[0])
 solve(a==L, xN, boundary_conditions(V_list[0]))
 
 # Iterate through uniform h-refinements
-while N_step < N:
+for N_step in N_steps:
     for i in range (0,4): # Solve MPDE 4 times on each mesh size
         xN = MPDE_FEM(M, xN, x, v, f, boundary_conditions(V_list[step_index]), mesh_list[step_index], V_list[step_index])
 
-    N_step = N_step*2 # Double number of mesh intervals in each direction
-    step_index = round(math.log(N_step/N_start,2))
+    step_index = round(math.log(N_step*2/N_start,2))
     # Generate computational function space on the finer mesh
-    mesh_list[step_index], V_list[step_index], v, x = comp_space(N_step)
+    mesh_list[step_index], V_list[step_index], v, x = comp_space(N_step*2)
 
     # Interpolate solution onto the new computational function space
     xN = interpolate(xN,V_list[step_index])
 
 # Calculate solution in final function space
-iterations = 0
-while iterations < 5:
+for i in range(0,5):
     xN = MPDE_FEM(M, xN, x, v, f, boundary_conditions(V_list[step_index]), mesh_list[step_index], V_list[step_index])
-    iterations +=1
 
 # Generate the physical mesh
 xiX, xiY = xN.split(True)

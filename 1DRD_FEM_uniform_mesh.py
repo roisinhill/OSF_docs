@@ -5,7 +5,7 @@ Solve the singularly perturbed differential equation (SPDE)
  -epsilon^2 u" + u =  f = 1-x, for x in (0,1)  with  u(0) = u(1) = 0
 on a uniform mesh.
 This code is part of
-Mesh partial differential equations (PDEs): application and implementation, ???
+Generating layer-adapted meshes using mesh partial differential equations,
 by Róisín Hill and Niall Madden. DOI: 10.17605/OSF.IO/DPEXH
 Contact: Róisín Hill <Roisin.Hill@NUIGalway.ie>
 """

@@ -7,9 +7,6 @@ whose solution has a layer near x = 0, by solving the MPDE
 using uniform h-refinement.
 
 Gauss-Lobatto quadrature rule is used:
-i.e. replace 'return GaussJacobiQuadratureLineRule(ref_el, m)'
-with 'return GaussLobattoLegendreQuadratureLineRule(ref_el, m)'
-in the file FIAT/quadrature.py
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,
@@ -21,8 +18,16 @@ from fenics import *
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-# Set degree for the Gauss-Lobatto quadrature rule
-parameters['form_compiler']['quadrature_degree'] =  4
+
+# Change default quadrature rule to Gauss Lobatto
+from FIAT.reference_element import *
+from FIAT.quadrature import *
+from FIAT.quadrature_schemes import create_quadrature
+def create_GaussLobatto_quadrature(ref_el, degree, scheme="default"):
+    if degree < 3: degree = 3
+    return GaussLobattoLegendreQuadratureLineRule(ref_el, degree)
+import FIAT
+FIAT.create_quadrature = create_GaussLobatto_quadrature
 
 # Problem parameters
 epsilon = 1E-6      # perturbation factor of the physical PDE
@@ -49,7 +54,7 @@ residual_norm = residual_norm_TOL+1
 mesh_list = []
 V_list = []
 list_length = (N_steps.size+1)
-print(list_length)
+
 for i in range(0,list_length):
     mesh_list.append("mesh%2d" %(i))
     V_list.append("V2D%2d" %(i))

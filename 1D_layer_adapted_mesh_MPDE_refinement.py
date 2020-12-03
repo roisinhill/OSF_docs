@@ -6,9 +6,6 @@ whose solution has a layer near x = 0, by solving the MPDE
    -(rho(x) x'(xi))' = 0 for xi in (0,1) with x(0) = 0 and x(1) = 1,
 
 Gauss-Lobatto quadrature rule is used:
-i.e. replace 'return GaussJacobiQuadratureLineRule(ref_el, m)'
-with 'return GaussLobattoLegendreQuadratureLineRule(ref_el, m)'
-in the file FIAT/quadrature.py
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,
@@ -20,8 +17,15 @@ from fenics import *
 import matplotlib.pyplot as plt
 import math
 
-# Set degree for the Gauss-Lobatto quadrature rule
-parameters['form_compiler']['quadrature_degree'] =  4
+# Change quadrature rule to Gauss Lobatto
+from FIAT.reference_element import *
+from FIAT.quadrature import *
+from FIAT.quadrature_schemes import create_quadrature
+def create_GaussLobatto_quadrature(ref_el, degree, scheme="default"):
+    if degree < 3: degree = 3
+    return GaussLobattoLegendreQuadratureLineRule(ref_el, degree)
+import FIAT
+FIAT.create_quadrature = create_GaussLobatto_quadrature
 
 # Problem parameters
 epsilon = 1E-6      # perturbation factor of the physical PDE

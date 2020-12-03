@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-# Change default quadrature rule to Gauss Lobatto
+# Change quadrature rule to Gauss Lobatto
 from FIAT.reference_element import *
 from FIAT.quadrature import *
 from FIAT.quadrature_schemes import create_quadrature

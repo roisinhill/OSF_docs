@@ -5,7 +5,7 @@ Generate 1-sided Bakhvalov-type mesh, for a singularly perturbed ODE
 whose solution has a layer near x = 0, by solving the MPDE
    -(rho(x) x'(xi))' = 0 for xi in (0,1) with x(0) = 0 and x(1) = 1,
 
-Gauss-Lobatto quadrature rule is used:
+Note: selection of Gauss-Lobatto quadrature rule is executed in lines 20-28.
 
 This code is part of
 Generating layer-adapted meshes using mesh partial differential equations,

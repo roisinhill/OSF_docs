@@ -124,6 +124,5 @@ xiX, xiY = xN.split(True)
 meshp = UnitSquareMesh(N,N)
 meshp.coordinates()[:,0] = xiX.compute_vertex_values()[0:(N+1)*(N+1)]
 meshp.coordinates()[:,1] = xiY.compute_vertex_values()[0:(N+1)*(N+1)]
-
 plot(meshp)
 plt.show()

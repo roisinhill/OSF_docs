@@ -19,6 +19,7 @@ Contact: Róisín Hill <Roisin.Hill@NUIGalway.ie>
 from fenics import *
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Problem parameters
 epsilon = 1E-2      # perturbation factor of the physical PDE
@@ -75,10 +76,10 @@ def boundary_conditions(V):
 
 # Define the matrix M(x) for MPDE
 def M(xN):
-    epsilon_y = Expression('epsilon*(1+xi1)*(1+xi1)',\
-        epsilon=epsilon, xi1=xN.sub(0), degree=2)
-    epsilon_x = Expression('epsilon*(2-xi2)*(2-xi2)',\
+    epsilon_x = Expression('epsilon*(1+2*xi2)*(1+2*xi2)',\
         epsilon=epsilon, xi2=xN.sub(1), degree=2)
+    epsilon_y = Expression('epsilon*(3-2*xi1)*(3-2*xi1)',\
+        epsilon=epsilon, xi1=xN.sub(0), degree=2)
     M = Expression((('K*(b/epsilon_x)*exp(-b*(1-xi1)/(sigma*epsilon_x))>1 ? K*(b/epsilon_x)*exp(-b*(1-xi1)/(sigma*epsilon_x)) : 1','0'),\
         ('0','K*(b/epsilon_y)*exp(-b*(1-xi2)/(sigma*epsilon_y))>1 ? K*(b/epsilon_y)*exp(-b*(1-xi2)/(sigma*epsilon_y)) :1')),\
         K=K, b=b, sigma=sigma, epsilon_x=epsilon_x, epsilon_y=epsilon_y,\
@@ -123,3 +124,6 @@ xiX, xiY = xN.split(True)
 meshp = UnitSquareMesh(N,N)
 meshp.coordinates()[:,0] = xiX.compute_vertex_values()[0:(N+1)*(N+1)]
 meshp.coordinates()[:,1] = xiY.compute_vertex_values()[0:(N+1)*(N+1)]
+
+plot(meshp)
+plt.show()
